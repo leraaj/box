@@ -16,12 +16,17 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={!isAuthenticated ? <Home /> : <Navigate to="/" replace />}
+          element={
+            !isAuthenticated ? <Home /> : <Navigate to="/dashboard" replace />
+          }
         />
         <Route
           path="*"
-          element={!isAuthenticated ? <Home /> : <Navigate to="/" replace />}
+          element={
+            !isAuthenticated ? <Home /> : <Navigate to="/dashboard" replace />
+          }
         />
+
         <Route
           path="/dashboard"
           element={
