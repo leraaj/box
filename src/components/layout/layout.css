@@ -1,0 +1,31 @@
+.main-container {
+  height: 100dvh; /* full viewport height */
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
+}
+
+.main-header {
+  flex: 0 0 auto; /* header height auto, doesn’t grow */
+  background-color: white;
+  padding: 0;
+}
+.main-searchbar {
+  flex: 1 1 auto; /* takes all remaining space */
+  padding: 1rem;
+}
+.main-content {
+  flex: 1 1 auto; /* takes all remaining space */
+  overflow-y: auto; /* scrollable if content overflows */
+  background-color: #18191a;
+  padding: 0 1rem;
+}
+
+.main-footer {
+  flex: 0 0 auto; /* footer height auto, doesn’t grow */
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: end;
+  align-items: center;
+}
