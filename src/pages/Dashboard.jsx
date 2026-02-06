@@ -4,6 +4,7 @@ import "../App.css";
 import "../components/layout/layout.css";
 import MainFooter from "../components/layout/MainFooter";
 import MainContent from "../components/layout/MainContent";
+import { meta } from "@eslint/js";
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -23,7 +24,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/messages");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages`);
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
         const data = await res.json();
         setMessages(data.data || []);
