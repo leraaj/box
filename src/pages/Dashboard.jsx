@@ -25,6 +25,7 @@ export default function Dashboard() {
     const fetchMessages = async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/messages`);
+
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
         const data = await res.json();
         setMessages(data.data || []);
