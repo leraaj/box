@@ -19,6 +19,10 @@ function App() {
           element={!isAuthenticated ? <Home /> : <Navigate to="/" replace />}
         />
         <Route
+          path="*"
+          element={!isAuthenticated ? <Home /> : <Navigate to="/" replace />}
+        />
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
