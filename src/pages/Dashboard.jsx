@@ -97,10 +97,16 @@ export default function Dashboard() {
   }, [filteredMessages, scrollDown]);
   // Helper to highlight search term in a string
   const highlightText = (text, query) => {
-    if (!query) return text;
+    if (!text) return "";
 
-    const regex = new RegExp(`(${query})`, "gi");
-    const parts = text.split(regex);
+    // convert HTML line-feed entity to real newline
+    const normalized = text.replace(/&#10;/g, "\n");
+
+    if (!query) return normalized;
+
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escaped})`, "gi");
+    const parts = normalized.split(regex);
 
     return parts.map((part, i) =>
       regex.test(part) ? (
@@ -157,9 +163,12 @@ export default function Dashboard() {
                   className={`message ${
                     m.type == 1 ? "me" : m.type == 2 ? "you" : ""
                   }`}>
-                  <div className="message-body">
+                  <div
+                    className="message-body"
+                    style={{ whiteSpace: "pre-wrap" }}>
                     {highlightText(m.body, search)}
                   </div>
+
                   <div className="message-datetime">{formattedDate}</div>
                 </div>
               );
