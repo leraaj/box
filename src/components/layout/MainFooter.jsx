@@ -35,7 +35,7 @@ const MainFooter = ({
 
   return (
     <div className="main-footer">
-      <div className="col text-white fs-h6 row m-0 p-0 gap-2">
+      <div className="col-md col-12 text-white fs-h6 row m-0 p-0 gap-2">
         <span className="fs-6">Last update: </span>
         <span>
           <span
