@@ -12,7 +12,7 @@ export default function Dashboard() {
   const [filter, setFilter] = useState("");
   const [search, setSearch] = useState("");
   const scrollRef = useRef(null);
-
+  const [backup, setBackup] = useState({});
   // Scroll helper
   const scrollDown = useCallback(() => {
     setTimeout(() => {
@@ -25,7 +25,7 @@ export default function Dashboard() {
     const fetchMessages = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_SERVER_URL}/api/messages`,
+          `${import.meta.env.VITE_API_URL}/api/messages-new`,
           {
             credentials: "include",
             method: "GET",
@@ -35,6 +35,7 @@ export default function Dashboard() {
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
         const data = await res.json();
         setMessages(data.data || []);
+        setBackup(data.backup || {});
       } catch (err) {
         console.error("Failed to fetch messages:", err);
       } finally {
@@ -125,7 +126,7 @@ export default function Dashboard() {
         <input
           type="search"
           className="form-control"
-          placeholder="Search from messages.."
+          placeholder={loading ? "Loading..." : "Search from messages.."}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           disabled={loading}
@@ -184,6 +185,8 @@ export default function Dashboard() {
         search={search}
         setFilter={setFilter}
         setSearch={setSearch}
+        backup={backup}
+        loading={loading}
       />
     </>
   );
