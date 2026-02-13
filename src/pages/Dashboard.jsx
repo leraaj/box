@@ -25,7 +25,7 @@ export default function Dashboard() {
     const fetchMessages = async () => {
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/messages-new`,
+          `${import.meta.env.VITE_SERVER_URL}/api/messages-new`,
           {
             credentials: "include",
             method: "GET",
