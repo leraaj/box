@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
   const loginWithCode = async (code) => {
     if (!/^\d{6}$/.test(code)) return false;
 
-    const URI = import.meta.env.VITE_API_URL;
+    const URI = import.meta.env.VITE_SERVER_URL;
 
     try {
       const res = await fetch(`${URI}/api/login`, {
