@@ -45,6 +45,12 @@ export default function Home() {
     if (!ok) {
       setError("Invalid code");
       setDigits(["", "", "", "", "", ""]);
+
+      // ✅ wait for state to update before focusing
+      setTimeout(() => {
+        inputsRef.current[0]?.focus();
+      }, 1);
+
       return;
     }
 
