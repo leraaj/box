@@ -5,6 +5,7 @@ import "../components/layout/layout.css";
 import MainFooter from "../components/layout/MainFooter";
 import MainContent from "../components/layout/MainContent";
 import { meta } from "@eslint/js";
+import { useAuth } from "../context/AuthContext";
 
 export default function Dashboard() {
   const [messages, setMessages] = useState([]);
@@ -13,6 +14,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const scrollRef = useRef(null);
   const [backup, setBackup] = useState({});
+  const { loggedInUser } = useAuth();
   // Scroll helper
   const scrollDown = useCallback(() => {
     setTimeout(() => {
@@ -34,8 +36,21 @@ export default function Dashboard() {
 
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
         const data = await res.json();
-        setMessages(data.data || []);
+        const msgs = data.data || [];
+        setMessages(msgs);
         setBackup(data.backup || {});
+
+        // Automatically set filter to latest month if messages exist
+        if (msgs.length > 0) {
+          const latestDate = new Date(
+            Math.max(...msgs.map((m) => new Date(m.date).getTime()))
+          );
+          const monthStr = latestDate.toLocaleString("default", {
+            month: "short",
+          });
+          const yearStr = latestDate.getFullYear();
+          setFilter(`${monthStr} - ${yearStr}`);
+        }
       } catch (err) {
         console.error("Failed to fetch messages:", err);
       } finally {
@@ -157,19 +172,28 @@ export default function Dashboard() {
               const ampm = hours >= 12 ? "PM" : "AM";
               hours = hours % 12 || 12;
               const formattedDate = `${month}/${day}/${year} - ${hours}:${minutes} ${ampm}`;
+              let messageClass = "";
+              if (loggedInUser == "nicole") {
+                if (m.type == 1) {
+                  messageClass = "me";
+                } else {
+                  messageClass = "you";
+                }
+              } else if (loggedInUser == "aj") {
+                if (m.type == 2) {
+                  messageClass = "me";
+                } else {
+                  messageClass = "you";
+                }
+              } else messageClass = "";
 
               return (
-                <div
-                  key={i}
-                  className={`message ${
-                    m.type == 1 ? "me" : m.type == 2 ? "you" : ""
-                  }`}>
+                <div key={i} className={`message ${messageClass}`}>
                   <div
                     className="message-body"
                     style={{ whiteSpace: "pre-wrap" }}>
                     {highlightText(m.body, search)}
                   </div>
-
                   <div className="message-datetime">{formattedDate}</div>
                 </div>
               );

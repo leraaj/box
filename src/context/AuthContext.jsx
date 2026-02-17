@@ -1,19 +1,24 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 
 const AuthContext = createContext(null);
 
 const AUTH_COOKIE = "otp_auth";
+const USER_COOKIE = "otp_user";
 
 function setCookie(name, value, hours) {
   const expires = new Date(Date.now() + hours * 60 * 60 * 1000).toUTCString();
-  document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+  document.cookie = `${name}=${encodeURIComponent(
+    value
+  )}; expires=${expires}; path=/`;
 }
 
 function getCookie(name) {
-  return document.cookie
+  const v = document.cookie
     .split("; ")
     .find((row) => row.startsWith(name + "="))
     ?.split("=")[1];
+
+  return v ? decodeURIComponent(v) : null;
 }
 
 function deleteCookie(name) {
@@ -21,45 +26,108 @@ function deleteCookie(name) {
 }
 
 export function AuthProvider({ children }) {
-  const pass = import.meta.env.VITE_PASS;
-
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isReady, setIsReady] = useState(false); // avoids flicker on refresh
+  const [loggedInUser, setUser] = useState(null);
+  const [isReady, setIsReady] = useState(false);
+  const logoutTimerRef = useRef(null);
 
-  // ✅ check cookie on every full refresh
+  // --- Helper: start or reset sliding logout timer ---
+  const startLogoutTimer = () => {
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+
+    // logout after 1 hour
+    logoutTimerRef.current = setTimeout(() => {
+      logout();
+    }, 60 * 60 * 1000); // 3600000 ms
+  };
+
+  // --- Logout ---
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+    deleteCookie(AUTH_COOKIE);
+    deleteCookie(USER_COOKIE);
+
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+  };
+
+  // --- Login with code ---
+  const loginWithCode = async (code) => {
+    if (!/^\d{6}$/.test(code)) return false;
+
+    const URI = import.meta.env.VITE_API_URL;
+
+    try {
+      const res = await fetch(`${URI}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (!data.user) return false;
+
+      setIsAuthenticated(true);
+      setUser(data.user);
+
+      // set cookie for 30 seconds
+      setCookie(AUTH_COOKIE, "true", 1); // 1 hour
+      setCookie(USER_COOKIE, loggedInUser, 1);
+
+      // start sliding logout timer
+      startLogoutTimer();
+
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  };
+
+  // --- Restore from cookie on page refresh ---
   useEffect(() => {
-    const v = getCookie(AUTH_COOKIE);
-    setIsAuthenticated(v === "true");
+    const auth = getCookie(AUTH_COOKIE);
+    const user = getCookie(USER_COOKIE);
+
+    if (auth === "true" && user) {
+      setIsAuthenticated(true);
+      setUser(user);
+      startLogoutTimer();
+    }
+
     setIsReady(true);
   }, []);
 
-  const loginWithCode = (code) => {
-    if (!/^\d{6}$/.test(code)) return false;
+  // --- Reset timer on user activity (click, keypress) ---
+  useEffect(() => {
+    if (!isAuthenticated) return;
 
-    if (code === pass) {
-      setIsAuthenticated(true);
+    const resetTimer = () => {
+      startLogoutTimer();
+      // also extend cookie for another 30s
+      setCookie(AUTH_COOKIE, "true", 0.0083333);
+      setCookie(USER_COOKIE, loggedInUser, 0.0083333);
+    };
 
-      // ✅ 6 hours expiry
-      setCookie(AUTH_COOKIE, "true", 6);
+    window.addEventListener("mousemove", resetTimer);
+    window.addEventListener("keydown", resetTimer);
+    window.addEventListener("click", resetTimer);
 
-      return true;
-    }
+    return () => {
+      window.removeEventListener("mousemove", resetTimer);
+      window.removeEventListener("keydown", resetTimer);
+      window.removeEventListener("click", resetTimer);
+    };
+  }, [isAuthenticated, loggedInUser]);
 
-    return false;
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    deleteCookie(AUTH_COOKIE);
-  };
-
-  // avoid rendering routes before cookie check finishes
   if (!isReady) return null;
 
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated,
+        loggedInUser,
         loginWithCode,
         logout,
       }}>

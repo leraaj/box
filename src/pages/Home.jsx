@@ -5,10 +5,10 @@ import { useAuth } from "../context/AuthContext";
 export default function Home() {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const inputsRef = useRef([]);
   const { loginWithCode, isAuthenticated } = useAuth();
-
   const navigate = useNavigate();
 
   const handleChange = (index, value) => {
@@ -29,12 +29,18 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const submitCode = async () => {
+    if (submitting) return;
 
     const code = digits.join("");
+    if (code.length !== 6 || digits.includes("")) return;
 
-    const ok = loginWithCode(code);
+    setSubmitting(true);
+    setError("");
+
+    const ok = await loginWithCode(code);
+
+    setSubmitting(false);
 
     if (!ok) {
       setError("Invalid code");
@@ -43,25 +49,27 @@ export default function Home() {
 
     navigate("/dashboard", { replace: true });
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitCode();
+  };
+
+  // auto-submit when 6 digits are filled
   useEffect(() => {
     const code = digits.join("");
-
     if (code.length === 6 && !digits.includes("")) {
-      const ok = loginWithCode(code);
-
-      if (!ok) {
-        setError("Invalid code");
-        return;
-      }
-
-      navigate("/dashboard", { replace: true });
+      submitCode();
     }
-  }, [digits, loginWithCode, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [digits]);
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/dashboard", { replace: true });
     }
   }, [isAuthenticated, navigate]);
+
   return (
     <div
       className="d-flex justify-content-center align-items-center bg-dark"
@@ -81,6 +89,7 @@ export default function Home() {
               onChange={(e) => handleChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
               style={{ width: 48 }}
+              disabled={submitting}
             />
           ))}
         </div>
