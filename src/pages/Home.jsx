@@ -44,6 +44,7 @@ export default function Home() {
 
     if (!ok) {
       setError("Invalid code");
+      setDigits(["", "", "", "", "", ""]);
       return;
     }
 
