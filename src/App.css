@@ -132,3 +132,26 @@ body {
 .message:hover {
   transform: translateY(-1px);
 }
+/* Add to layout.css or your component CSS */
+.input-error-pulse {
+  animation: errorPulse 1.5s ease-in-out;
+  box-shadow: 0 0 8px 2px red; /* initial glow */
+}
+
+@keyframes errorPulse {
+  0% {
+    box-shadow: 0 0 0px 0px red;
+  }
+  25% {
+    box-shadow: 0 0 12px 4px red;
+  }
+  50% {
+    box-shadow: 0 0 0px 0px red;
+  }
+  85% {
+    box-shadow: 0 0 12px 4px red;
+  }
+  100% {
+    box-shadow: 0 0 0px 0px red;
+  }
+}

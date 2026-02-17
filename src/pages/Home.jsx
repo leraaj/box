@@ -6,6 +6,7 @@ export default function Home() {
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [pulseError, setPulseError] = useState(false);
 
   const inputsRef = useRef([]);
   const { loginWithCode, isAuthenticated } = useAuth();
@@ -46,10 +47,13 @@ export default function Home() {
       setError("Invalid code");
       setDigits(["", "", "", "", "", ""]);
 
-      // ✅ wait for state to update before focusing
+      // trigger red pulse
+      setPulseError(true);
+
       setTimeout(() => {
+        setPulseError(false); // reset class after animation
         inputsRef.current[0]?.focus();
-      }, 1);
+      }, 1500); // match animation duration
 
       return;
     }
@@ -90,7 +94,9 @@ export default function Home() {
               type="text"
               inputMode="numeric"
               maxLength={1}
-              className="form-control text-center fs-4 rounded-4 border-0"
+              className={`form-control text-center fs-4 rounded-4 border-0 ${
+                pulseError && i === 0 ? "input-error-pulse" : ""
+              }`}
               value={d}
               placeholder={`${i < 2 ? "M" : i >= 2 && i <= 3 ? "D" : "Y"}`}
               onChange={(e) => handleChange(i, e.target.value)}
